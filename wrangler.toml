@@ -1,0 +1,14 @@
+name = "oneai"
+main = "src/index.ts"
+compatibility_date = "2026-05-28"
+
+[assets]
+directory = "./public"
+
+[[d1_databases]]
+binding = "DB"
+database_name = "oneai-db"
+database_id = "replace-with-your-d1-database-id"
+
+[vars]
+DEFAULT_TOKEN_LIMIT = "200000"
