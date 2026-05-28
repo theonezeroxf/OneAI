@@ -1,0 +1,74 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>OneAI Chat</title>
+  <style>
+    body { font-family: sans-serif; max-width: 900px; margin: 24px auto; padding: 0 16px; }
+    textarea { width: 100%; min-height: 100px; }
+    .card { border: 1px solid #ddd; padding: 16px; border-radius: 8px; margin-bottom: 16px; }
+    pre { background: #f6f6f6; padding: 10px; border-radius: 6px; }
+  </style>
+</head>
+<body>
+  <h1>OneAI Chat</h1>
+  <div class="card">
+    <label>用户ID <input id="userId" value="demo-user" /></label>
+    <label>模型 <select id="model"></select></label>
+    <textarea id="prompt" placeholder="输入消息..."></textarea>
+    <button id="send">发送</button>
+  </div>
+
+  <div class="card">
+    <h3>回复</h3>
+    <pre id="reply"></pre>
+  </div>
+
+  <div class="card">
+    <h3>Token 使用量</h3>
+    <pre id="usage"></pre>
+  </div>
+
+  <script>
+    const modelSel = document.getElementById('model');
+    const reply = document.getElementById('reply');
+    const usage = document.getElementById('usage');
+
+    async function loadModels() {
+      const res = await fetch('/api/models');
+      const data = await res.json();
+      data.models.forEach((m) => {
+        const opt = document.createElement('option');
+        opt.value = m;
+        opt.textContent = m;
+        modelSel.appendChild(opt);
+      });
+    }
+
+    async function refreshUsage(userId) {
+      const res = await fetch(`/api/usage/${userId}`);
+      usage.textContent = JSON.stringify(await res.json(), null, 2);
+    }
+
+    document.getElementById('send').onclick = async () => {
+      const userId = document.getElementById('userId').value;
+      const prompt = document.getElementById('prompt').value;
+      const model = modelSel.value;
+      const res = await fetch('/api/chat', {
+        method: 'POST',
+        headers: { 'content-type': 'application/json' },
+        body: JSON.stringify({
+          userId,
+          model,
+          messages: [{ role: 'user', content: prompt }]
+        })
+      });
+      reply.textContent = JSON.stringify(await res.json(), null, 2);
+      await refreshUsage(userId);
+    };
+
+    loadModels().then(() => refreshUsage(document.getElementById('userId').value));
+  </script>
+</body>
+</html>
